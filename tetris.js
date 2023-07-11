@@ -2,27 +2,27 @@
 
 // get a random integer between the range of [min,max]
 // @see https://stackoverflow.com/a/1527820/2124254
-function getRandomInt(min, max) {
+const getRandomeInt = (min, max) => {
   min = Math.ceil(min);
   max = Math.floor(max);
 
   return Math.floor(Math.random() * (max - min + 1)) + min;
-}
+};
 
 // generate a new tetromino sequence
 // @see https://tetris.fandom.com/wiki/Random_Generator
-function generateSequence() {
+const generateSequence = () => {
   const sequence = ["I", "J", "L", "O", "S", "T", "Z"];
 
   while (sequence.length) {
-    const rand = getRandomInt(0, sequence.length - 1);
+    const rand = getRandomeInt(0, sequence.length - 1);
     const name = sequence.splice(rand, 1)[0];
     tetrominoSequence.push(name);
   }
-}
+};
 
 // get the next tetromino in the sequence
-function getNextTetromino() {
+const getNextTetromino = () => {
   if (tetrominoSequence.length === 0) {
     generateSequence();
   }
@@ -42,19 +42,19 @@ function getNextTetromino() {
     row: row, // current row (starts offscreen)
     col: col, // current col
   };
-}
+};
 
 // rotate an NxN matrix 90deg
 // @see https://codereview.stackexchange.com/a/186834
-function rotate(matrix) {
+const rotate = (matrix) => {
   const N = matrix.length - 1;
   const result = matrix.map((row, i) => row.map((val, j) => matrix[N - j][i]));
 
   return result;
-}
+};
 
 // check to see if the new matrix/row/col is valid
-function isValidMove(matrix, cellRow, cellCol) {
+const isValidMove = (matrix, cellRow, cellCol) => {
   for (let row = 0; row < matrix.length; row++) {
     for (let col = 0; col < matrix[row].length; col++) {
       if (
@@ -72,10 +72,10 @@ function isValidMove(matrix, cellRow, cellCol) {
   }
 
   return true;
-}
+};
 
 // place the tetromino on the playfield
-function placeTetromino() {
+const placeTetromino = () => {
   for (let row = 0; row < tetromino.matrix.length; row++) {
     for (let col = 0; col < tetromino.matrix[row].length; col++) {
       if (tetromino.matrix[row][col]) {
@@ -104,10 +104,10 @@ function placeTetromino() {
   }
 
   tetromino = getNextTetromino();
-}
+};
 
 // show the game over screen
-function showGameOver() {
+const showGameOver = () => {
   cancelAnimationFrame(rAF);
   gameOver = true;
 
@@ -121,7 +121,7 @@ function showGameOver() {
   context.textAlign = "center";
   context.textBaseline = "middle";
   context.fillText("GAME OVER!", canvas.width / 2, canvas.height / 2);
-}
+};
 
 const canvas = document.getElementById("game");
 const context = canvas.getContext("2d");
@@ -198,7 +198,7 @@ let rAF = null; // keep track of the animation frame so we can cancel it
 let gameOver = false;
 
 // game loop
-function loop() {
+const loop = () => {
   rAF = requestAnimationFrame(loop);
   context.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -245,41 +245,40 @@ function loop() {
       }
     }
   }
-}
+};
 
 // listen to keyboard events to move the active tetromino
-document.addEventListener("keydown", function (e) {
+document.addEventListener("keydown", (e) => {
   if (gameOver) return;
 
-  // left and right arrow keys (move)
-  if (e.which === 37 || e.which === 39) {
-    const col = e.which === 37 ? tetromino.col - 1 : tetromino.col + 1;
+  switch (e.code) {
+    // move tetromino left and Right
+    case "ArrowLeft":
+    case "ArrowRight":
+      const col =
+        e.code === "ArrowLeft" ? tetromino.col - 1 : tetromino.col + 1;
+      if (isValidMove(tetromino.matrix, tetromino.row, col)) {
+        tetromino.col = col;
+      }
+      break;
 
-    if (isValidMove(tetromino.matrix, tetromino.row, col)) {
-      tetromino.col = col;
-    }
-  }
+    case "ArrowUp":
+      const matrix = rotate(tetromino.matrix);
+      if (isValidMove(matrix, tetromino.row, tetromino.col)) {
+        tetromino.matrix = matrix;
+      }
+      break;
 
-  // up arrow key (rotate)
-  if (e.which === 38) {
-    const matrix = rotate(tetromino.matrix);
-    if (isValidMove(matrix, tetromino.row, tetromino.col)) {
-      tetromino.matrix = matrix;
-    }
-  }
-
-  // down arrow key (drop)
-  if (e.which === 40) {
-    const row = tetromino.row + 1;
-
-    if (!isValidMove(tetromino.matrix, row, tetromino.col)) {
-      tetromino.row = row - 1;
-
-      placeTetromino();
-      return;
-    }
-
-    tetromino.row = row;
+    // drop tetromino
+    case "ArrowDown":
+      const row = tetromino.row + 1;
+      if (!isValidMove(tetromino.matrix, row, tetromino.col)) {
+        tetromino.row = row - 1;
+        placeTetromino();
+        return;
+      }
+      tetromino.row = row;
+      break;
   }
 });
 
