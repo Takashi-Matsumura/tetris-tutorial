@@ -1,27 +1,44 @@
 // https://tetris.fandom.com/wiki/Tetris_Guideline
 
-// get a random integer between the range of [min,max]
-// @see https://stackoverflow.com/a/1527820/2124254
-const getRandomeInt = (min, max) => {
+/**
+ * Returns a random integer between the specified range.
+ * @param {number} min - The minimum value of the range (inclusive).
+ * @param {number} max - The maximum value of the range (inclusive).
+ * @returns {number} A random integer between the specified range.
+ *
+ * @see https://stackoverflow.com/a/1527820/2124254
+ */
+const getRandomInt = (min, max) => {
   min = Math.ceil(min);
   max = Math.floor(max);
 
   return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 
-// generate a new tetromino sequence
-// @see https://tetris.fandom.com/wiki/Random_Generator
+/**
+ * Generates a new sequence of tetrominos to be used in the game.
+ * The sequence is generated randomly and contains one of each tetromino type.
+ * @returns {void}
+ *
+ * @see https://tetris.fandom.com/wiki/Random_Generator
+ */
 const generateSequence = () => {
   const sequence = ["I", "J", "L", "O", "S", "T", "Z"];
 
   while (sequence.length) {
-    const rand = getRandomeInt(0, sequence.length - 1);
+    const rand = getRandomInt(0, sequence.length - 1);
     const name = sequence.splice(rand, 1)[0];
     tetrominoSequence.push(name);
   }
 };
 
-// get the next tetromino in the sequence
+/**
+ * Returns the next tetromino in the sequence.
+ * If the sequence is empty, generates a new sequence.
+ * @returns {Object} An object containing the name, matrix, row, and col of the next tetromino.
+ *
+ * @see https://tetris.fandom.com/wiki/Random_Generator
+ */
 const getNextTetromino = () => {
   if (tetrominoSequence.length === 0) {
     generateSequence();
@@ -44,8 +61,13 @@ const getNextTetromino = () => {
   };
 };
 
-// rotate an NxN matrix 90deg
-// @see https://codereview.stackexchange.com/a/186834
+/**
+ * Rotates an NxN matrix 90 degrees clockwise.
+ * @param {Array<Array>} matrix - The matrix to rotate.
+ * @returns {Array<Array>} The rotated matrix.
+ *
+ * @see https://codereview.stackexchange.com/a/186834
+ */
 const rotate = (matrix) => {
   const N = matrix.length - 1;
   const result = matrix.map((row, i) => row.map((val, j) => matrix[N - j][i]));
@@ -53,7 +75,13 @@ const rotate = (matrix) => {
   return result;
 };
 
-// check to see if the new matrix/row/col is valid
+/**
+ * Checks if a tetromino can be moved to the specified cell on the playfield.
+ * @param {Array<Array>} matrix - The matrix representing the tetromino.
+ * @param {number} cellRow - The row of the cell to move the tetromino to.
+ * @param {number} cellCol - The column of the cell to move the tetromino to.
+ * @returns {boolean} True if the tetromino can be moved to the specified cell, false otherwise.
+ */
 const isValidMove = (matrix, cellRow, cellCol) => {
   for (let row = 0; row < matrix.length; row++) {
     for (let col = 0; col < matrix[row].length; col++) {
@@ -74,7 +102,11 @@ const isValidMove = (matrix, cellRow, cellCol) => {
   return true;
 };
 
-// place the tetromino on the playfield
+/**
+ * Places the current tetromino on the playfield and checks for line clears.
+ * If any part of the tetromino is offscreen, the game is over.
+ * @returns {void}
+ */
 const placeTetromino = () => {
   for (let row = 0; row < tetromino.matrix.length; row++) {
     for (let col = 0; col < tetromino.matrix[row].length; col++) {
@@ -106,7 +138,12 @@ const placeTetromino = () => {
   tetromino = getNextTetromino();
 };
 
-// show the game over screen
+/**
+ * Ends the game and displays the game over screen.
+ * Cancels the animation frame and sets the `gameOver` flag to true.
+ * Fills the canvas with a semi-transparent black rectangle and displays "GAME OVER!" in white text.
+ * @returns {void}
+ */
 const showGameOver = () => {
   cancelAnimationFrame(rAF);
   gameOver = true;
@@ -123,13 +160,39 @@ const showGameOver = () => {
   context.fillText("GAME OVER!", canvas.width / 2, canvas.height / 2);
 };
 
+/**
+ * The canvas element used to draw the game.
+ * @type {HTMLCanvasElement}
+ */
 const canvas = document.getElementById("game");
+
+/**
+ * The 2D rendering context for the canvas element used to draw the game.
+ * @type {CanvasRenderingContext2D}
+ */
 const context = canvas.getContext("2d");
+
+/**
+ * The 2D rendering context for the canvas element used to draw the game.
+ * @type {CanvasRenderingContext2D}
+ */
 const grid = 32;
+
+/**
+ * An array containing the sequence of tetrominos to be used in the game.
+ * The sequence is generated randomly and contains one of each tetromino type.
+ * @type {Array<string>}
+ *
+ * @see https://tetris.fandom.com/wiki/Random_Generator
+ */
 const tetrominoSequence = [];
 
-// keep track of what is in every cell of the game using a 2d array
-// tetris playfield is 10x20, with a few rows offscreen
+/**
+ * A 2D array representing the playfield of the Tetris game.
+ * Each cell in the playfield is either empty (0) or occupied by a tetromino (1).
+ * The playfield is 10 cells wide and 20 cells tall, with a few rows offscreen.
+ * @type {Array<Array<number>>}
+ */
 const playfield = [];
 
 // populate the empty state
@@ -181,7 +244,10 @@ const tetrominos = {
   ],
 };
 
-// color of each tetromino
+/**
+ * An object containing the color of each tetromino.
+ * @type {Object<string, string>}
+ */
 const colors = {
   I: "cyan",
   O: "yellow",
@@ -192,12 +258,34 @@ const colors = {
   L: "orange",
 };
 
+/**
+ * The number of times a certain action has been performed.
+ * @type {number}
+ */
 let count = 0;
+
+/**
+ * The current active tetromino that is falling down the playfield.
+ * @type {Array<Array<number>>}
+ */
 let tetromino = getNextTetromino();
+
+/**
+ * The ID of the current animation frame request.
+ * Used to keep track of the animation frame so it can be cancelled if needed.
+ * @type {number|null}
+ */
 let rAF = null; // keep track of the animation frame so we can cancel it
+
+/**
+ * A boolean indicating whether the game is over or not.
+ * @type {boolean}
+ */
 let gameOver = false;
 
-// game loop
+/**
+ * The main game loop that runs continuously to update the game state and render the game.
+ */
 const loop = () => {
   rAF = requestAnimationFrame(loop);
   context.clearRect(0, 0, canvas.width, canvas.height);
